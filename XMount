@@ -1,6 +1,6 @@
 #!/bin/sh
 if [ $# = 0 ]; then
-    echo "Usage: $0 <[/dev/]disk?s?>"
+    echo "Usage: $0 MountPoint|DiskIdentifier|DeviceNode|UUID"
 else
     INFO=`diskutil info $1`
     NODE=`echo "$INFO" | grep "Device Node:" | awk '{print $3}'`
