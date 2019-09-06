@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# Flutter
+mkdir ~/Sites
+cd ~/Sites
+git clone -b master https://github.com/flutter/flutter.git
+cat << \EOF > ~/.bash_profile
+export PUB_HOSTED_URL=https://pub.flutter-io.cn
+export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
+export PATH=/Users/admin/Sites/flutter/bin:$PATH
+EOF
+flutter doctor
+
+# VS Code
+cat << \EOF > "~/Library/Application Support/Code/User/settings.json"
+{
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.detectIndentation": true,
+    "editor.insertSpaces": false,
+    "editor.minimap.enabled": false,
+    "editor.useTabStops": true,
+    "html.format.wrapLineLength": 160,
+    "prettier.endOfLine": "lf",
+    "prettier.htmlWhitespaceSensitivity": "strict",
+    "prettier.printWidth": 160,
+    "prettier.semi": false,
+    "prettier.singleQuote": true,
+    "prettier.tabWidth": 4,
+    "prettier.useTabs": true,
+    "python.autoComplete.addBrackets": true,
+    "python.pythonPath": "/usr/local/bin/python3",
+    "workbench.startupEditor": "newUntitledFile",
+}
+EOF
