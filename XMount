@@ -10,7 +10,7 @@ else
         echo "$NODE $FS is not NTFS!"
         exit 1
     fi
-    NAME=`echo "$INFO" | grep "Volume Name:" | awk '{print $3}'`
+    NAME=`echo "$INFO" | grep "Volume Name:" | perl -ne 'print $1 if /.*Volume Name:\s*(\S.*)/s'
     if [ -z "$NAME" ]; then
         NAME=NTFS
     fi
