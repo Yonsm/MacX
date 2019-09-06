@@ -1,7 +1,21 @@
 #!/bin/sh
 if [ $# = 0 ]; then
-    echo Usage: $0 </dev/disk?s?>
+    echo "Usage: $0 <[/dev/]disk?s?>"
 else
-    sudo umount $1
-    sudo mount_ntfs -o rw,nobrowse $1 /Volumes/NTFS
+    INFO=`diskutil info $1`
+    NODE=`echo "$INFO" | grep "Device Node:" | awk '{print $3}'`
+    FS=`echo "$INFO" | grep "File System Personality:" | awk '{print $4}'`
+    if [ "$FS" != "NTFS" ]; then
+        echo "$INFO"
+        echo "$NODE $FS is not NTFS!"
+        exit 1
+    fi
+    NAME=`echo "$INFO" | grep "Volume Name:" | awk '{print $3}'`
+    if [ -z "$NAME" ]; then
+        NAME=NTFS
+    fi
+    sudo umount $NODE
+    sudo mkdir /Volumes/$NAME
+    sudo mount_ntfs -o rw,nobrowse $NODE /Volumes/$NAME
+    open /Volumes/$NAME
 fi
