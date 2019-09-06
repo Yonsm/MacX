@@ -2,7 +2,11 @@
 CDIR=$(cd "${0%/*}"; pwd)
 
 echo "$CDIR/bin" | sudo tee /etc/paths.d/tools.admin.diy
-echo "admin ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers
+
+sudo grep "admin ALL=(ALL) NOPASSWD: ALL" /etc/sudoers
+if [ $? = 1 ]; then
+    echo "admin ALL=(ALL) NOPASSWD: ALL" | sudo tee -a /etc/sudoers
+fi
 
 sudo spctl --master-disable
 
@@ -15,14 +19,16 @@ defaults write com.apple.iTunes AutomaticDeviceBackupsDisabled -bool true
 exit
 
 # Chrome + Baidu https://github.com/acgotaku/BaiduExporter
-#cd /Volumes/RAM && git clone https://github.com/CodeTips/BaiduNetdiskPlugin-macOS.git && cd /Volumes/RAM/BaiduNetdiskPlugin-macOS/Other && sed 's/\/Applications/\/Users\/admin\/Applications/g' Install.sh | sh
+cd /Volumes/RAM && git clone https://github.com/CodeTips/BaiduNetdiskPlugin-macOS.git && cd /Volumes/RAM/BaiduNetdiskPlugin-macOS/Other && sed 's/\/Applications/\/Users\/admin\/Applications/g' Install.sh | sh
 
 # Speed Test
-curl -o $CDIR/speedtest https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py
-chmod +x $CDIR/speedtest
+cd $CDIR
+curl -o speedtest https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py
+chmod +x speedtest
 
 # Brew
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 brew update
 
+brew uinstall python3
 pip3 install esptool
