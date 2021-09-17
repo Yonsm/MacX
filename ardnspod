@@ -2,7 +2,7 @@
 #
 
 #############################################################
-# AnripDdns v6.1.1
+# AnripDdns v6.2.0
 #
 # Dynamic DNS using DNSPod API
 #
@@ -31,10 +31,12 @@ arWanIp4() {
     lanIps="$lanIps|(^169\.254\.[0-9]{1,3}\.[0-9]{1,3}$)"
     lanIps="$lanIps|(^172\.(1[6-9]|2[0-9]|3[0-1])\.[0-9]{1,3}\.[0-9]{1,3}$)"
     lanIps="$lanIps|(^192\.168\.[0-9]{1,3}\.[0-9]{1,3}$)"
+    
+    local vEthernets="\s(lo|veth|docker)"
 
     case $(uname) in
         'Linux')
-            hostIp=$(ip -o -4 addr list | grep -Ev '\s(docker|lo)' | awk '{print $4}' | cut -d/ -f1 | grep -Ev "$lanIps")
+            hostIp=$(ip -o -4 addr list | grep -Ev "$vEthernets" | awk '{print $4}' | cut -d/ -f1 | grep -Ev "$lanIps")
         ;;
         'Darwin')
             hostIp=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}' | grep -Ev "$lanIps")
@@ -43,7 +45,7 @@ arWanIp4() {
 
     if [ -z "$hostIp" ]; then
         if type wget >/dev/null 2>&1; then
-            hostIp=$(wget -q -O- https://v4.myip.la)
+            hostIp=$(wget -q -O - -t 2 https://v4.myip.la)
         else
             hostIp=$(curl -s https://v4.myip.la)
         fi
@@ -82,7 +84,7 @@ arWanIp6() {
 
     if [ -z "$hostIp" ]; then
         if type wget >/dev/null 2>&1; then
-            hostIp=$(wget -q -O- https://v6.myip.la)
+            hostIp=$(wget -q -O - -t 2 https://v6.myip.la)
         else
             hostIp=$(curl -s https://v6.myip.la)
         fi
@@ -113,9 +115,9 @@ arDdnsApi() {
     local params="login_token=$arToken&format=json&$2"
 
     if type wget >/dev/null 2>&1; then
-        wget -q -O- --no-check-certificate -U $agent --post-data $params $apiurl
+        wget -q -O - -t 2 --no-check-certificate -U "$agent" --post-data "$params" "$apiurl"
     else
-        curl -s -A $agent -d $params $apiurl
+        curl -s -A "$agent" -d "$params" "$apiurl"
     fi
 
 }
@@ -126,22 +128,10 @@ arDdnsApi() {
 arDdnsIds() {
 
     local errMsg
-
-    local domainId
     local recordId
 
-    # Get Domain Id
-    domainId=$(arDdnsApi "Domain.Info" "domain=$2")
-    domainId=$(echo $domainId | sed 's/.*"id":"\([0-9]*\)".*/\1/')
-
-    if ! [ "$domainId" -gt 0 ] 2>/dev/null ;then
-        errMsg=$(echo $domainId | sed 's/.*"message":"\([^\"]*\)".*/\1/')
-        echo "arDdnsIds - $errMsg"
-        return 1
-    fi
-
     # Get Record Id
-    recordId=$(arDdnsApi "Record.List" "domain_id=$domainId&sub_domain=$3&record_type=$1")
+    recordId=$(arDdnsApi "Record.List" "domain=$2&sub_domain=$3&record_type=$1")
     recordId=$(echo $recordId | sed 's/.*"id":"\([0-9]*\)".*/\1/')
 
     if ! [ "$recordId" -gt 0 ] 2>/dev/null ;then
@@ -150,25 +140,24 @@ arDdnsIds() {
         return 1
     fi
 
-    echo $domainId $recordId
+    echo $recordId
 }
 
 # Fetch Record Ip
-# Args: domainId recordId
+# Args: domain recordId
 
 arDdnsRecordIp() {
 
     local errMsg
-
     local recordIp
 
     # Get Record Ip
-    recordIp=$(arDdnsApi "Record.Info" "domain_id=$1&record_id=$2")
+    recordIp=$(arDdnsApi "Record.Info" "domain=$1&record_id=$2")
     recordIp=$(echo $recordIp | sed 's/.*,"value":"\([0-9a-fA-F\.\:]*\)".*/\1/')
 
     # Output Record Ip
     case "$recordIp" in
-        [1-9]*)
+        [0-9a-fA-F]*)
             echo $recordIp
             return 0
         ;;
@@ -182,7 +171,7 @@ arDdnsRecordIp() {
 }
 
 # Update Record Ip
-# Args: domainId recordId subdomain hostIp recordType
+# Args: domain recordId subdomain hostIp recordType
 
 arDdnsUpdate() {
 
@@ -198,7 +187,12 @@ arDdnsUpdate() {
     fi
 
     # Update Ip
-    recordRs=$(arDdnsApi "Record.Modify" "domain_id=$1&record_id=$2&sub_domain=$3&record_type=$5&value=$4&record_line=%e9%bb%98%e8%ae%a4")
+    if [ "$5" = "A" ]; then
+        recordRs=$(arDdnsApi "Record.Ddns" "domain=$1&record_id=$2&sub_domain=$3&value=$4&record_line=%e9%bb%98%e8%ae%a4")
+    else
+        recordRs=$(arDdnsApi "Record.Modify" "domain=$1&record_id=$2&sub_domain=$3&record_type=$5&value=$4&record_line=%e9%bb%98%e8%ae%a4")
+    fi
+
     recordIp=$(echo $recordRs | sed 's/.*,"value":"\([0-9a-fA-F\.\:]*\)".*/\1/')
     recordCd=$(echo $recordRs | sed 's/.*{"code":"\([0-9]*\)".*/\1/')
 
@@ -253,7 +247,7 @@ arDdnsCheck() {
     fi
 
     echo "Checking Record for $2.$1"
-    lastIp=$(arDdnsRecordIp $ddnsIds)
+    lastIp=$(arDdnsRecordIp $1 $ddnsIds)
 
     errCode=$?
     echo "> Last Ip: $lastIp"
@@ -267,14 +261,13 @@ arDdnsCheck() {
     fi
 
     echo "Updating Record for $2.$1"
-    postRs=$(arDdnsUpdate $ddnsIds "$2" "$hostIp" "$recordType")
+    postRs=$(arDdnsUpdate $1 $ddnsIds "$2" "$hostIp" "$recordType")
 
     errCode=$?
     echo "> $postRs"
     if [ $errCode -ne 0 ]; then
         return 1
     fi
-
 }
 
 if [ -z "$4" ]; then
