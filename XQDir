@@ -9,7 +9,7 @@ fi
 cd "$Pictures"
 
 
-rename()
+qren()
 {
 	for PIC in `ls "$1"|tr " " "?"`
 	do
@@ -21,7 +21,7 @@ rename()
 	done
 }
 
-move()
+qmove()
 {
 	for PIC in `ls "$1"|tr " " "?"`
 	do
@@ -49,27 +49,39 @@ move()
 			continue
 		fi
 		[ ! -d $QDIR ] && mkdir $QDIR
-		mv -n "$1/$PIC" "$QDIR/"
+		PIC2=`echo "$PIC"|tr " " "_"`
+		mv -n "$1/$PIC" "$QDIR/$PIC2"
 	done
 	rmdir "$1"
 }
+		
+[ -d "2000.00 头像" ] && rm -rf "2000.00 头像"
+[ -d "2016.04 装修" ] && rm -rf "2016.04 装修"
 
-# Link
+qdir()
+{
+	case "$1" in
+		2000|2001|2002|2003|2004|2005|2006|2007|2008|2009|*.Q1|*.Q2|*.Q3|*.Q4)
+			echo "RENAME: $1"
+			qren "$1"
+			;;
+		20*)
+			echo "MOVE: $1"
+			qmove "$1"
+			;;
+		*)
+			echo "SKIP: $1"
+			;;
+	esac
+	return 0
+}
+
+[ ! -z "$2" ] && qren "$2" && exit
+
 for DIR in `ls|tr " " "?"`
 do
 	echo "$DIR" >> /tmp/test.txt
 	DIR=`echo "$DIR"|tr "?" " "`
-	case "$DIR" in
-		2000|2001|2002|2003|2004|2005|2006|2007|2008|2009|*.Q1|*.Q2|*.Q3|*.Q4)
-			echo "RENAME: $DIR"
-			rename "$DIR"
-			;;
-		20*)
-			echo "MOVE: $DIR"
-			move "$DIR"
-			;;
-		*)
-			echo "SKIP: $DIR"
-			;;
-	esac
+	qdir "$DIR"
 done
+
