@@ -67,7 +67,7 @@ REFILE()
 	fi
 
 	if [ ! -z "$NAME" ]; then
-		RENAME "$SDIR" "$FILE" "$NAME" "$EXT" "$RESULT" "$TEST"
+		RENAME "$SDIR" "$FILE" "${NAME/ /_}" "$EXT" "$RESULT" "$TEST"
 	else
 		echo "FAIL: $FILE"
 	fi
