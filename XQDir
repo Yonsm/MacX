@@ -1,0 +1,75 @@
+#!/bin/sh
+Pictures="$1"
+
+# Check
+if [ ! -d "$Pictures" ]; then
+	echo "Pictures dir not exist"
+	exit 1
+fi
+cd "$Pictures"
+
+
+rename()
+{
+	for PIC in `ls "$1"|tr " " "?"`
+	do
+		PIC=`echo "$PIC"|tr "?" " "`
+		PIC2=`echo "$PIC"|tr " " "_"`
+		if [[ "$PIC" != "$PIC2" ]]; then
+			mv -n "$1/$PIC" "$1/$PIC2"
+		fi
+	done
+}
+
+move()
+{
+	for PIC in `ls "$1"|tr " " "?"`
+	do
+		PIC=`echo "$PIC"|tr "?" " "`
+		YEAR=${PIC%%"-"*}
+		if [ $YEAR -ge 2000 ] 2>/dev/null && [ $YEAR -le 2009 ] 2>/dev/null; then
+			QDIR=$YEAR
+		elif [ $YEAR -ge 2010 ] 2>/dev/null && [ $YEAR -le 2022 ] 2>/dev/null; then
+			MONTH=${PIC#*"-"}
+			MONTH=${MONTH:0:2}
+			if [ $MONTH -ge 1 ] 2>/dev/null && [ $MONTH -le 3 ] 2>/dev/null; then
+				QDIR=$YEAR.Q1
+			elif [ $MONTH -ge 4 ] 2>/dev/null && [ $MONTH -le 6 ] 2>/dev/null; then
+				QDIR=$YEAR.Q2
+			elif [ $MONTH -ge 7 ] 2>/dev/null && [ $MONTH -le 9 ] 2>/dev/null; then
+				QDIR=$YEAR.Q3
+			elif [ $MONTH -ge 10 ] 2>/dev/null && [ $MONTH -le 12 ] 2>/dev/null; then
+				QDIR=$YEAR.Q4
+			else
+				echo "ERROR: Unexception month: $1/$PIC"
+				continue
+			fi
+		else
+			echo "ERROR: Unexception year: $1/$PIC"
+			continue
+		fi
+		[ ! -d $QDIR ] && mkdir $QDIR
+		mv -n "$1/$PIC" "$QDIR/"
+	done
+	rmdir "$1"
+}
+
+# Link
+for DIR in `ls|tr " " "?"`
+do
+	echo "$DIR" >> /tmp/test.txt
+	DIR=`echo "$DIR"|tr "?" " "`
+	case "$DIR" in
+		2000|2001|2002|2003|2004|2005|2006|2007|2008|2009|*.Q1|*.Q2|*.Q3|*.Q4)
+			echo "RENAME: $DIR"
+			rename "$DIR"
+			;;
+		20*)
+			echo "MOVE: $DIR"
+			move "$DIR"
+			;;
+		*)
+			echo "SKIP: $DIR"
+			;;
+	esac
+done
