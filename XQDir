@@ -23,13 +23,18 @@ qren()
 
 qmove()
 {
+	if [ -z $2 ]; then
+		QYEAR=2010
+	else
+		QYEAR=$2
+	fi
 	for PIC in `ls "$1"|tr " " "?"`
 	do
 		PIC=`echo "$PIC"|tr "?" " "`
 		YEAR=${PIC%%"-"*}
-		if [ $YEAR -ge 2000 ] 2>/dev/null && [ $YEAR -le 2009 ] 2>/dev/null; then
+		if [ $YEAR -ge 2000 ] 2>/dev/null && [ $YEAR -lt $QYEAR ] 2>/dev/null; then
 			QDIR=$YEAR
-		elif [ $YEAR -ge 2010 ] 2>/dev/null && [ $YEAR -le 2022 ] 2>/dev/null; then
+		elif [ $YEAR -ge $QYEAR ] 2>/dev/null && [ $YEAR -le 2099 ] 2>/dev/null; then
 			MONTH=${PIC#*"-"}
 			MONTH=${MONTH:0:2}
 			if [ $MONTH -ge 1 ] 2>/dev/null && [ $MONTH -le 3 ] 2>/dev/null; then
@@ -41,11 +46,11 @@ qmove()
 			elif [ $MONTH -ge 10 ] 2>/dev/null && [ $MONTH -le 12 ] 2>/dev/null; then
 				QDIR=$YEAR.Q4
 			else
-				echo "ERROR: Unexception month: $1/$PIC"
+				echo "ERROR: Unexception month $MONTH: $1/$PIC"
 				continue
 			fi
 		else
-			echo "ERROR: Unexception year: $1/$PIC"
+			echo "ERROR: Unexception year $YEAR: $1/$PIC"
 			continue
 		fi
 		[ ! -d $QDIR ] && mkdir $QDIR
@@ -57,17 +62,18 @@ qmove()
 		
 [ -d "2000.00 头像" ] && rm -rf "2000.00 头像"
 [ -d "2016.04 装修" ] && rm -rf "2016.04 装修"
+[ -f "2020.03/2020.03.17 170601.mp4" ] && mv "2020.03/2020.03.17 170601.mp4" "2020.03/2020-03-17.170601.mp4"
 
 qdir()
 {
 	case "$1" in
-		2000|2001|2002|2003|2004|2005|2006|2007|2008|2009|*.Q1|*.Q2|*.Q3|*.Q4)
+		20??|*.Q1|*.Q2|*.Q3|*.Q4)
 			echo "RENAME: $1"
-			qren "$1"
+			#qren "$1"
 			;;
 		20*)
 			echo "MOVE: $1"
-			qmove "$1"
+			qmove "$1" "$2"
 			;;
 		*)
 			echo "SKIP: $1"
@@ -76,12 +82,10 @@ qdir()
 	return 0
 }
 
-[ ! -z "$2" ] && qren "$2" && exit
-
 for DIR in `ls|tr " " "?"`
 do
 	echo "$DIR" >> /tmp/test.txt
 	DIR=`echo "$DIR"|tr "?" " "`
-	qdir "$DIR"
+	qdir "$DIR" "$2"
 done
 
