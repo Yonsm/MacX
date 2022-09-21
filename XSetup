@@ -9,33 +9,15 @@ if [ $? = 1 ]; then
 fi
 
 sudo spctl --master-disable
-#sudo mdutil -a -i off
-#sudo touch /Volumes/CARD/.metadata_never_index
 
-#defaults write com.apple.iTunes DeviceBackupsDisabled -bool YES
+defaults write com.apple.iTunes DeviceBackupsDisabled -bool YES
 defaults write com.apple.desktopservices DSDontWriteNetworkStores true
 defaults write com.apple.iTunes AutomaticDeviceBackupsDisabled -bool true
 
-# sudo xattr -rd com.apple.quarantine /Applications/${APP}.app
-# xcode-select --install
-# sudo codesign --force --deep --sign - /Applications/${APP}.app
-
-#$CDIR/RAMDISK.sh
+#$CDIR/XRamDisk
 
 exit
 
-cat << \EOF > ~/.zshrc
-export CLICOLOR=1
-export LSCOLORS=ExGxFxdaCxDaDahbadeche
-
-#autoload -U colors && colors
-#PROMPT="%{$fg_bold[cyan]%}%n%{$reset_color%}@%{$fg_bold[cyan]%}%m %{$fg_bold[green]%}%1~ %{$reset_color%}%#"
-
-alias gitreset="git reset --hard"
-
-export XWING_HOST=
-export XWING_PASS=
-EOF
 
 # Speed Test
 cd $CDIR
@@ -46,17 +28,18 @@ chmod +x speedtest
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 brew update
 
-brew install scrcpy python3
+brew install scrcpy
 
 # Python
-mkdir -p ~/.config/pip
-cat << \EOF > ~/.config/pip/pip.conf
+mkdir ~/.pip
+cat << \EOF > ~/.pip/pip.conf
 [global]
-index-url = https://mirrors.aliyun.com/pypi/simple/
+index-url=http://mirrors.aliyun.com/pypi/simple/
+[install]
+trusted-host=mirrors.aliyun.com
 EOF
 
-pip3 install --user esptool
-
+pip3 install esptool miservice
 
 # Sublime
 # +Package Control: Command+Shift+P
@@ -84,7 +67,8 @@ echo
 
 # SN
 cat << \EOF
-#—– BEGIN LICENSE —–
+# Sublime
+—– BEGIN LICENSE —–
 Mifeng User
 Single User License
 EA7E-1184812
@@ -112,10 +96,6 @@ PLEDPRO095-42E7-REKA-M4H4-1309-1405
 MacXMacX
 4nbSTd3G6C-2bS2quo1of-AIC
 
-#OmniGraffle
-Yonsm
-MUIF-KYEG-ARFW-LWMV-WHAD-JEGW-HAD
-
 #VMWare
 YF390-0HF8P-M81RQ-2DXQE-M2UT6
 
@@ -128,8 +108,6 @@ Mac OS
 EOF
 
 # VS Code
-#   +Chinese
-#   +Python
 #   +PlatformIO
 cat << \EOF > ~/Library/Application\ Support/Code/User/settings.json
 {
@@ -153,18 +131,3 @@ cat << \EOF > ~/Library/Application\ Support/Code/User/settings.json
     "python.formatting.autopep8Args": ["--max-line-length=200"]
 }
 EOF
-
-echo 'alias grs="git reset --hard"' >> ~/.zshrc
-
-# Flutter
-SITES=/Volumes/DAT/Sites
-mkdir $SITES
-cd $SITES
-git clone -b master https://github.com/flutter/flutter.git
-cat << \EOF > ~/.bash_profile
-export PUB_HOSTED_URL=https://pub.flutter-io.cn
-export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
-export PATH=$SITES/flutter/bin:$PATH
-EOF
-flutter doctor
-

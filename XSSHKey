@@ -1,3 +1,0 @@
-#!/bin/sh
-cat ~/.ssh/authorized_keys | pbcopy
-cat ~/.ssh/authorized_keys
