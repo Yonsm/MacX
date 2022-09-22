@@ -4,7 +4,7 @@ echo 1 > ~/Library/Application\ Support/Beyond\ Compare/IsPro
 :>~/Library/Application\ Support/Beyond\ Compare/registry.dat
 chmod 444 ~/Library/Application\ Support/Beyond\ Compare/registry.dat
 
-cat << EOF | tee ~/Library/Application\ Support/Beyond\ Compare/BCCommands.xml > /dev/null
+cat << EOF > ~/Library/Application\ Support/Beyond\ Compare/BCCommands.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Produced by Beyond Compare 4 from Scooter Software -->
 <BCCommands Version="1" MinVersion="1">
@@ -20,12 +20,36 @@ cat << EOF | tee ~/Library/Application\ Support/Beyond\ Compare/BCCommands.xml >
 </BCCommands>
 EOF
 
-cat << EOF | tee ~/Library/Application\ Support/Beyond\ Compare/BCPreferences.xml > /dev/null
+cat << EOF > ~/Library/Application\ Support/Beyond\ Compare/BCPreferences.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Produced by Beyond Compare 4 from Scooter Software -->
 <BCPreferences Version="1" MinVersion="1">
 	<TBcPrefs>
+		<OpConfirmCompare Value="False"/>
 		<OpConfirmCopy Value="False"/>
+		<OpConfirmDelete Value="False"/>
+		<OpConfirmMerge Value="False"/>
+		<OpConfirmMove Value="False"/>
+		<OpConfirmMoveReplace Value="False"/>
+		<OpConfirmOverwriteNewer Value="False"/>
+		<OpConfirmOverwriteReadOnly Value="False"/>
+		<OpConfirmOverwriteSysFile Value="False"/>
+		<OpSyncConfirmMode Value="cmYesToAll"/>
+		<TabsConfirmClose Value="False"/>
+		<WindowsConfirmClose Value="False"/>
 	</TBcPrefs>
 </BCPreferences>
+EOF
+
+cat << EOF > ~/Library/Application\ Support/Beyond\ Compare/BCPreferences.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Produced by Beyond Compare 4 from Scooter Software -->
+<BCState Version="1" MinVersion="1">
+	<TBcState>
+		<FirstStartup Value="False"/>
+	</TBcState>
+	<TTipState>
+		<DontShowAgain Value="[tipEmptyDirs, tipFastRefresh]"/>
+	</TTipState>
+</BCState>
 EOF
