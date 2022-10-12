@@ -1,18 +1,28 @@
 #!/bin/sh
+CDIR=$(cd "${0%/*}"; pwd)
 
-if [ -d /etc/storage ]; then
+if [ -f /etc/config/miwifi ]; then # Normal dnsmasq
+	_MODE=ROUTER
+	_OS=MIWIFI
+	_GFWLIST_CONF=$CDIR/gfwlist.conf
+	_GFWLIST_URL=https://cokebar.github.io/gfwlist2dnsmasq/dnsmasq_gfwlist_ipset.conf
+	PATH=$PATH:$CDIR
+elif [ -d /etc/storage ]; then # Yonsm's dnsmasq with gfwlist and tcpdns
+	_MODE=ROUTER
 	_OS=PADAVAN
-	_DNSMASQ_CONF=/etc/storage/dnsmasq/dnsmasq.conf
+	DNSMASQ_CONF=/etc/storage/dnsmasq/dnsmasq.conf
 	_GFWLIST_CONF=/etc/storage/dnsmasq/gfwlist.txt
 	_GFWLIST_CONF_RO=/etc_ro/gfwlist.txt
-elif type networksetup >/dev/null 2>&1; then
-	_OS=MACOS
-	_GFWLIST_CONF=gfwlist.pac
-	_GFWLIST_CONF_RO=$(cd "${0%/*}"; pwd)/gfwlist.pac
+	_GFWLIST_URL=https://cokebar.github.io/gfwlist2dnsmasq/gfwlist_domain.txt
 else
-	_OS=LINUX
-	_GFWLIST_CONF=gfwlist.txt
-	_GFWLIST_CONF_RO=$(cd "${0%/*}"; pwd)/gfwlist.txt
+	_MODE=OTHER
+	if type networksetup >/dev/null 2>&1; then
+		_OS=MACOS
+	else
+		_OS=OTHER
+	fi
+	_GFWLIST_CONF=$CDIR/gfwlist.pac
+	_GFWLIST_URL=https://raw.githubusercontent.com/petronny/gfwlist2pac/master/gfwlist.pac
 fi
 
 usage()
@@ -29,25 +39,34 @@ usage()
 update()
 {
 	[ ! -z "$1" ] && _GFWLIST_CONF="$1"
-	curl -k -o $_GFWLIST_CONF https://cokebar.github.io/gfwlist2dnsmasq/gfwlist_domain.txt || exit 1
-	echo pypi.org>>$_GFWLIST_CONF
-	echo pythonhosted.org>>$_GFWLIST_CONF
-	echo openwrt.org>>$_GFWLIST_CONF
-	echo lede-project.org>>$_GFWLIST_CONF
-	echo facebook-hardware.com>>$_GFWLIST_CONF
-	echo fbthirdpartypixel.com>>$_GFWLIST_CONF
-	echo workplace.com>>$_GFWLIST_CONF
+	curl -k -o $_GFWLIST_CONF $_GFWLIST_URL || exit 1
 
-if [ $_OS = MACOS ]; then
-	# TODO: Generate PAC
-	cat << EOF > $_GFWLIST_CONF
-var rules = [$(sed 's/^/"&/g;s/$/&",/g' $_GFWLIST_CONF)]
-function FindProxyForURL(url, host) {
-    for (var i in rules)
-        if (host.endsWith(rules[i]))
-            return 'SOCKS5 127.0.0.1:1080'
-    return 'DIRECT'
-}
+if [ $_OS = PADAVAN ]; then
+	cat << EOF >> $_GFWLIST_CONF
+pypi.org
+pythonhosted.org
+openwrt.org
+lede-project.org
+facebook-hardware.com
+fbthirdpartypixel.com
+workplace.com
+EOF
+elif [ $_OS = MIWIFI ]; then
+	cat << EOF >> $_GFWLIST_CONF
+server=/pypi.org/127.0.0.1#5353
+ipset=/pypi.org/gfwlist
+server=/pythonhosted.org/127.0.0.1#5353
+ipset=/pythonhosted.org/gfwlist
+server=/openwrt.org>/127.0.0.1#5353
+ipset=/openwrt.org/gfwlist
+server=/lede-project.org/127.0.0.1#5353
+ipset=/lede-project.org/gfwlist
+server=/facebook-hardware.com/127.0.0.1#5353
+ipset=/facebook-hardware.com/gfwlistx
+server=/fbthirdpartypixel.com/127.0.0.1#5353
+ipset=/fbthirdpartypixel.com/gfwlist
+server=/workplace.com/127.0.0.1#5353
+ipset=/workplace.com/gfwlist
 EOF
 fi
 }
@@ -157,12 +176,8 @@ decode_b64()
 
 prepare()
 {
-if [ $_OS = LINUX ] || ([ $_OS = MACOS ] && [ "$WING_PAC" != "1" ]); then
-	return
-fi
-
 	if [ ! -f $_GFWLIST_CONF ]; then
-		if [ -f $_GFWLIST_CONF_RO ]; then
+		if [ -f "$_GFWLIST_CONF_RO" ]; then
 			_GFWLIST_CONF=$_GFWLIST_CONF_RO
 		else
 			update
@@ -172,7 +187,7 @@ fi
 
 inject()
 {
-if [ $_OS = PADAVAN ]; then
+if [ $_MODE = ROUTER ]; then
 	iptables -t nat $1 OUTPUT -p tcp -m set --match-set gfwlist dst -j REDIRECT --to-port 1088
 	iptables -t nat $1 PREROUTING -p tcp -m set --match-set gfwlist dst -j REDIRECT --to-port 1088
 elif [ $_OS = MACOS ]; then
@@ -195,8 +210,12 @@ elif [ $_OS = MACOS ]; then
 	fi
 
 	if [ "$WING_PAC" = "1" ]; then
+		if [ ! -f /Library/WebServer/Documents/gfwlist.pac ]; then
+			sudo cp $_GFWLIST_CONF /Library/WebServer/Documents/gfwlist.pac
+			sudo apachectl restart
+		fi
 		local SET_PROXY_STATE=-setautoproxystate
-		local SET_PROXY_PARAM="setautoproxyurl $WING_NETWORK file://$_GFWLIST_CONF"
+		local SET_PROXY_PARAM="setautoproxyurl $WING_NETWORK http://127.0.0.1/gfwlist.pac"
 	else
 		local SET_PROXY_STATE=-setsocksfirewallproxystate
 		local SET_PROXY_PARAM="setsocksfirewallproxy $WING_NETWORK $2 $3"
@@ -218,7 +237,8 @@ fi
 proxy()
 {
 	prepare
-if [ $_OS = PADAVAN ]; then
+
+if [ $_MODE = ROUTER ]; then
 	ulimit -n 65536
 
 	# ipt2socks
@@ -244,6 +264,7 @@ if [ $_OS = PADAVAN ]; then
 	ipset create gfwlist iphash
 	ipset add gfwlist 8.8.8.8
 
+if [ $_OS = PADAVAN ]; then
 	# dnsmasq
 	GFWLIST_LINE="gfwlist=$_GFWLIST_CONF"
 	if ! grep "$GFWLIST_LINE" $_DNSMASQ_CONF > /dev/null; then
@@ -251,7 +272,14 @@ if [ $_OS = PADAVAN ]; then
 		echo "$GFWLIST_LINE" >> $_DNSMASQ_CONF
 		dnsmasq
 	fi
+else
+	dns-forwarder -p 5353 &
+	ln -s $_GFWLIST_CONF /tmp/dnsmasq.d/
+	/etc/init.d/dnsmasq restart
 fi
+
+fi
+
 	inject -A $3 $4
 }
 
@@ -339,7 +367,7 @@ start()
 	elif [ $1 -ge 2 ]; then
 		nohup "$XCMD" &> /tmp/wing.log &
 	else
-if [ $_OS = PADAVAN ]; then
+if [ $_MODE = ROUTER ]; then
 		$XCMD &
 else
 		$XCMD
@@ -353,17 +381,23 @@ stop()
 	inject -D 2> /dev/null
 
 
-	killall trojan ssr-local ssr-redir ss-local ss-redir ipt2socks 2> /dev/null
+	killall trojan ssr-local ssr-redir ss-local ss-redir ipt2socks dns-forwarder 2> /dev/null
 	rm /tmp/trojan.conf /tmp/ssr.conf /tmp/wing.log /tmp/ipt2socks.log 2> /dev/null
 
-if [ $_OS = PADAVAN ]; then
+if [ $_MODE = ROUTER ]; then
 	ipset destroy gfwlist
 	[ "$1" == "-R" ] && return
 
+if [ $_OS = PADAVAN ]; then
 	prepare
 	sed -i /gfwlist=${_GFWLIST_CONF//\//\\/}/d $_DNSMASQ_CONF
 	killall dnsmasq
 	dnsmasq
+else
+	rm /tmp/dnsmasq.d/gfwlist.conf
+	/etc/init.d/dnsmasq restart
+fi
+
 fi
 
 	echo Wing service stopped
@@ -396,7 +430,7 @@ start)
 	inject -D
 	;;
 -r|r|resume)
-if [ $_OS = PADAVAN ]; then
+if [ $_MODE = ROUTER ]; then
 	ipset test gfwlist 8.8.8.8 || exit 3
 fi
 	inject -C || inject -A
@@ -406,6 +440,16 @@ fi
 	;;
 -u|u|update)
 	update "$2"
+	;;
+-i|i|install)
+if [ $_OS = MIWIFI ]; then
+	uci set firewall.wing=include
+	uci set firewall.wing.type="script"
+	uci set firewall.wing.path="$CDIR/wing start $2"
+	uci set firewall.wing.enabled="1"
+	uci commit firewall
+	uci show firewall.wing
+fi
 	;;
 -h|h|help)
 	usage
