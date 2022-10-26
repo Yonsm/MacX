@@ -1,6 +1,6 @@
 #!/bin/sh
 #SRC_DIR=`dirname $0`
-SRC_DIR=/Volumes/DAT/Applications
+SRC_DIR=/Volumes/USR/Applications
 DST_DIR=$HOME/Applications
 
 # Check
