@@ -7,13 +7,13 @@ RENAME()
 	SRC="$1/$2"
 	DST="$1/$3.$4"
 	if [ "$SRC" != "$DST" ]; then
-		if [[ -f "$DST" ]]; then
+		if [ -f "$DST" ]; then
 			RENAME "$1" "$2" "$3_" "$4" "$5" "$6"
 		else
 			echo "$5: $2 => $3.$4"
 			if [ "$6" != "-" ]; then
 				mv "$SRC" "$DST"
-				if [[ -f "$1/.thumb.$2.jpg" ]]; then
+				if [ -f "$1/.thumb.$2.jpg" ]; then
 					echo "$5: .thumb.$2.jpg => .thumb.$3.$4.jpg"
 					mv "$1/.thumb.$2.jpg" "$1/.thumb.$3.$4.jpg"
 				fi
@@ -32,7 +32,7 @@ REFILE()
 	EXT=${FILE##*.}
 	EXT=`echo $EXT | tr "[:upper:]" "[:lower:]"`
 
-	if [[ "$EXT" = jpg ]] || [[ "$EXT" = jpeg ]]; then
+	if [ "$EXT" = "jpg" ] || [ "$EXT" = "jpeg" ]; then
 		DATE=`jhead "$SDIR/$FILE" | grep "Date/Time"`
 		if [ -z "$DATE" ]; then
 			NAME=""
@@ -40,7 +40,8 @@ REFILE()
 			NAME="`echo ${DATE:15:10} | tr : -` `echo ${DATE:26} | tr -d :`"
 		fi
 		RESULT="EXIF"
-	elif [[ "$EXT" = png ]] || [[ "$EXT" = gif ]] || [[ "$EXT" = mov ]] || [[ "$EXT" = mp4 ]] || [[ "$EXT" = avi ]] || [[ "$EXT" = heic ]]; then
+		[ "$EXT" = "jpeg" ] && EXT=jpg
+	elif [ "$EXT" = "png" ] || [ "$EXT" = "gif" ] || [ "$EXT" = "mov" ] || [ "$EXT" = "mp4" ] || [ "$EXT" = "avi" ] || [ "$EXT" = "heic" ]; then
 		NAME=""
 	else
 		return 1
