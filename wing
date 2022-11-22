@@ -449,7 +449,7 @@ if [ $_OS = MIWIFI ]; then
 	uci commit firewall
 	uci show firewall.wing
 elif [ $_OS = MACOS ]; then
-
+	echo TODO
 fi
 	;;
 -s|status)
