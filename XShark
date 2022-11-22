@@ -17,6 +17,9 @@ if [ ! -d "$WIRESHARK_APP_DIR" ] ; then
 	exit 1
 fi
 
+
+# opkg install libc libpcap tcmpdump
+
 APP_PATH="$WIRESHARK_APP_DIR/Contents/MacOS/WireShark"
 if [[ $1 == *@* ]]; then
     if [ -z $2 ]; then
@@ -29,7 +32,12 @@ if [[ $1 == *@* ]]; then
     else
         DUMP=$3
     fi
-    ssh $1 "$DUMP -s 0 -U -n -i $IF -w - not port 22" | "$APP_PATH" -k -i -
+    if [ -z $4 ]; then
+        HOST=
+    else
+        HOST="and host $4"
+    fi
+    ssh $1 "$DUMP -s 0 -U -n -i $IF -w - not port 22 $HOST" | "$APP_PATH" -k -i -
 else
     sudo chmod 666 /dev/bpf*
     echo exec "$APP_PATH" "$@"
