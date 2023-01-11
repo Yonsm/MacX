@@ -26,6 +26,7 @@ elif [ -d /etc/storage ]; then # Yonsm's dnsmasq with gfwlist and tcpdns
 else
 	_MODE=OTHER
 	if type networksetup >/dev/null 2>&1; then
+		WING_PAC=1
 		_OS=MACOS
 		_GFWLIST_CONF=/Library/WebServer/Documents/gfwlist.pac
 		_GFWLIST_URL=https://raw.githubusercontent.com/petronny/gfwlist2pac/master/gfwlist.pac
