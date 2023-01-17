@@ -182,6 +182,8 @@ decode_b64()
 
 prepare()
 {
+	[ $_OS = MACOS ] && [ "$WING_PAC" != "1" ] && return
+
 	if [ ! -f $_GFWLIST_CONF ]; then
 		if [ ! -z $_GFWLIST_CONF_RO ] && [ -f $_GFWLIST_CONF_RO ]; then
 			_GFWLIST_CONF=$_GFWLIST_CONF_RO
@@ -292,6 +294,8 @@ proxy()
 
 resolve()
 {
+	[ $_OS = MACOS ] && return
+
 	CNT=0
 	while [ $CNT -le 20 ]
 	do
