@@ -317,6 +317,7 @@ resolve()
 ssxcmd()
 {
 	resolve $1
+	[ -z $_PORT ] && _PORT=443
 	if [ $RUN_MODE = ROUTER-redir ]; then
 		local RUN_TYPE=redir
 		local LOCAL_PORT=1088
@@ -357,6 +358,7 @@ start()
 			local LOCAL_PORT=1080
 		fi
 		resolve $1
+		[ -z $_PORT ] && _PORT=443
 		echo "{\"run_type\":\"$RUN_TYPE\",\"local_addr\":\"0.0.0.0\",\"local_port\":$LOCAL_PORT,\"remote_addr\":\"$_HOST\",\"remote_port\":$_PORT,\"password\":[\"$_USER\"],\"log_level\":$1,\"ssl\":{\"verify\":false}}" > /tmp/trojan.conf
 		XCMD="trojan -c /tmp/trojan.conf"
 		;;
@@ -394,7 +396,6 @@ start()
 		;;
 	esac
 
-	[ -z $_PORT ] && _PORT=443
 	proxy $1 $_PROT 127.0.0.1 1080
 
 	if [ $1 -ge 4 ]; then
