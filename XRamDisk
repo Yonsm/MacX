@@ -17,15 +17,16 @@ case "$1" in
         ;;
 esac
 
+HDOPT="-nomount ram://$(($GSIZE*1024*1024*2))"
 case "$2" in
     hdik)
-        HDCMD="hdik -drivekey system-image=yes -nomount ram://$(($GSIZE*1024*1024*2))"
+        HDCMD="hdik -drivekey system-image=yes $HDOPT"
         ;;
     hdid)
-        HDCMD="hdid -nomount ram://$(($GSIZE*1024*1024*2))"
+        HDCMD="hdid $HDOPT"
         ;;
     *)
-        HDCMD="hdiutil attach -nomount ram://$(($GSIZE*1024*1024*2))"
+        HDCMD="hdiutil attach $HDOPT"
         ;;
 esac
 
