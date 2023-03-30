@@ -9,6 +9,8 @@
 # _ARGS=
 # _HASH=
 
+[ -z "$SOCKS_PORT" ] && SOCKS_PORT=1080
+
 if [ -f /etc/config/miwifi ]; then # Normal dnsmasq
 	_MODE=ROUTER
 	_OS=MIWIFI
@@ -26,7 +28,7 @@ elif [ -d /etc/storage ]; then # Yonsm's dnsmasq with gfwlist and tcpdns
 else
 	_MODE=OTHER
 	if type networksetup >/dev/null 2>&1; then
-		WING_PAC=1
+		[ -z "$WING_PAC" ] && WING_PAC=1
 		_OS=MACOS
 		_GFWLIST_CONF=/Library/WebServer/Documents/gfwlist.pac
 		_GFWLIST_URL=https://raw.githubusercontent.com/petronny/gfwlist2pac/master/gfwlist.pac
@@ -323,9 +325,9 @@ ssxcmd()
 		local LOCAL_PORT=1088
 	else
 		local RUN_TYPE=local
-		local LOCAL_PORT=1080
+		local LOCAL_PORT=$SOCKS_PORT
 		if type ssr-client >/dev/null 2>&1; then
-			echo "{\"password\":\"$_PASS\",\"method\":\"$_USER\",\"protocol\":\"$_PATH\",\"protocol_param\":\"$_protoparam\",\"obfs\":\"$_HASH\",\"obfs_param\":\"$_obfsparam\",\"client_settings\":{\"server\":\"$_HOST\",\"server_port\":$_PORT,\"listen_address\":\"0.0.0.0\",\"listen_port\":1080}}" > /tmp/ssr.conf
+			echo "{\"password\":\"$_PASS\",\"method\":\"$_USER\",\"protocol\":\"$_PATH\",\"protocol_param\":\"$_protoparam\",\"obfs\":\"$_HASH\",\"obfs_param\":\"$_obfsparam\",\"client_settings\":{\"server\":\"$_HOST\",\"server_port\":$_PORT,\"listen_address\":\"0.0.0.0\",\"listen_port\":$SOCKS_PORT}}" > /tmp/ssr.conf
 			XCMD="ssr-client -c /tmp/ssr.conf"
 			return
 		fi
@@ -355,7 +357,7 @@ start()
 			local LOCAL_PORT=1088
 		else
 			local RUN_TYPE=client
-			local LOCAL_PORT=1080
+			local LOCAL_PORT=$SOCKS_PORT
 		fi
 		resolve $1
 		[ -z $_PORT ] && _PORT=443
@@ -386,7 +388,7 @@ start()
 		ssxcmd $1 ss
 		;;
 	socks5)
-		[ -z $_PORT ] && _PORT=1080
+		[ -z $_PORT ] && _PORT=$SOCKS_PORT
 		proxy $1 $_PROT $_HOST $_PORT
 		return
 		;;
@@ -396,7 +398,7 @@ start()
 		;;
 	esac
 
-	proxy $1 $_PROT 127.0.0.1 1080
+	proxy $1 $_PROT 127.0.0.1 $SOCKS_PORT
 
 	if [ $1 -ge 4 ]; then
 		$XCMD &
