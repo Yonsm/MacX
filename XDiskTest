@@ -1,12 +1,12 @@
 #!/bin/sh
 if [ $# = 0 ]; then
-    dd bs=1024k count=512 if=/dev/zero of=test.dat
-    dd bs=1024k count=512 if=test.dat of=/dev/null
+	time dd bs=1024k count=512 if=/dev/zero of=test.dat
+	time dd bs=1024k count=512 if=test.dat of=/dev/null
 else
-    # Work on Linux only
-    # hdparm -B 127 $1
-    # hdparm -S 180 $1
-    # hdparm -C $1
-    hdparm -I $1
-    hdparm -Tt $1
+	# Work on Linux only
+	# hdparm -B 127 $1
+	# hdparm -S 180 $1
+	# hdparm -C $1
+	hdparm -I $1
+	time hdparm -Tt $1
 fi
