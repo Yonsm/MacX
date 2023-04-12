@@ -9,7 +9,7 @@
 # _ARGS=
 # _HASH=
 
-[ -z "$SOCKS_PORT" ] && SOCKS_PORT=1080
+[ -z "$SOCKS_PORT" ] && SOCKS_PORT=1082
 
 if [ -f /etc/config/miwifi ]; then # Normal dnsmasq
 	_MODE=ROUTER
@@ -159,7 +159,9 @@ parse_url()
 
 make_url()
 {
-	local URL="$_PROT://$_USER:$_PASS@$_HOST:$_PORT"
+	local URL="$_PROT://$_USER"
+	[ "$_PASS" ] && URL="$URL:$_PASS"
+	URL="$URL@$_HOST:$_PORT"
 	[ ! -z $_PATH ] && URL="$URL/$_PATH"
 	[ ! -z $_ARGS ] && URL="$URL?$_ARGS"
 	[ ! -z $_HASH ] && URL="$URL#$_HASH"
@@ -220,23 +222,21 @@ inject()
 			[ -z "$WING_NETWORK" ] && echo "Could not find valid network" && exit 2
 		fi
 
-		if [ "$WING_PAC" = "1" ]; then
-			local SET_PROXY_STATE=-setautoproxystate
-			local SET_PROXY_PARAM="setautoproxyurl $WING_NETWORK http://127.0.0.1/gfwlist.pac"
-		else
-			local SET_PROXY_STATE=-setsocksfirewallproxystate
-			local SET_PROXY_PARAM="setsocksfirewallproxy $WING_NETWORK $2 $3"
-		fi
-
 		if [ $1 == -C ]; then
-			networksetup $SET_PROXY_STATE $WING_NETWORK on
+			[ "$WING_PAC" = "1" ] && 
+				networksetup -setautoproxystate "$WING_NETWORK" on || 
+				networksetup -setsocksfirewallproxystate "$WING_NETWORK" on
 			return 0
 		elif [ $1 == -D ]; then
-			networksetup $SET_PROXY_STATE $WING_NETWORK off
+			[ "$WING_PAC" = "1" ] && 
+				networksetup -setautoproxystate "$WING_NETWORK" off || 
+				networksetup -setsocksfirewallproxystate "$WING_NETWORK" off
 		else
 			echo "Local Network: $WING_NETWORK"
 			echo "export ALL_PROXY=socks5://$2:$3"
-			networksetup $SET_PROXY_PARAM
+			[ "$WING_PAC" = "1" ] && 
+				networksetup setautoproxyurl "$WING_NETWORK" http://127.0.0.1/gfwlist.pac ||
+				networksetup setsocksfirewallproxy "$WING_NETWORK" $2 $3
 		fi
 	fi
 }
@@ -327,13 +327,13 @@ ssxcmd()
 		local RUN_TYPE=local
 		local LOCAL_PORT=$SOCKS_PORT
 		if type ssr-client >/dev/null 2>&1; then
-			echo "{\"password\":\"$_PASS\",\"method\":\"$_USER\",\"protocol\":\"$_PATH\",\"protocol_param\":\"$_protoparam\",\"obfs\":\"$_HASH\",\"obfs_param\":\"$_obfsparam\",\"client_settings\":{\"server\":\"$_HOST\",\"server_port\":$_PORT,\"listen_address\":\"0.0.0.0\",\"listen_port\":$SOCKS_PORT}}" > /tmp/ssr.conf
+			echo "{\"password\":\"${_PASS//%/\\x}\",\"method\":\"$_USER\",\"protocol\":\"$_PATH\",\"protocol_param\":\"$_protoparam\",\"obfs\":\"$_HASH\",\"obfs_param\":\"$_obfsparam\",\"client_settings\":{\"server\":\"$_HOST\",\"server_port\":$_PORT,\"listen_address\":\"0.0.0.0\",\"listen_port\":$SOCKS_PORT}}" > /tmp/ssr.conf
 			XCMD="ssr-client -c /tmp/ssr.conf"
 			return
 		fi
 	fi
 	[ $1 -le 3 ] && RUN_TYPE="$RUN_TYPE -v"
-	XCMD="$2-$RUN_TYPE -s $_HOST -p $_PORT -k $_PASS -b 0.0.0.0 -l $LOCAL_PORT -m $_USER $3"
+	XCMD="$2-$RUN_TYPE -s $_HOST -p $_PORT -k ${_PASS//%/\\x} -b 0.0.0.0 -l $LOCAL_PORT -m $_USER $3"
 }
 
 start()
@@ -361,7 +361,7 @@ start()
 		fi
 		resolve $1
 		[ -z $_PORT ] && _PORT=443
-		echo "{\"run_type\":\"$RUN_TYPE\",\"local_addr\":\"0.0.0.0\",\"local_port\":$LOCAL_PORT,\"remote_addr\":\"$_HOST\",\"remote_port\":$_PORT,\"password\":[\"$_USER\"],\"log_level\":$1,\"ssl\":{\"verify\":false}}" > /tmp/trojan.conf
+		echo "{\"run_type\":\"$RUN_TYPE\",\"local_addr\":\"0.0.0.0\",\"local_port\":$LOCAL_PORT,\"remote_addr\":\"$_HOST\",\"remote_port\":$_PORT,\"password\":[\"${_USER//%/\\x}\"],\"log_level\":$1,\"ssl\":{\"verify\":false}}" > /tmp/trojan.conf
 		XCMD="trojan -c /tmp/trojan.conf"
 		;;
 	ssr*)
