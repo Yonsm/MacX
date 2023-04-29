@@ -9,7 +9,7 @@
 # _ARGS=
 # _HASH=
 
-[ -z "$SOCKS_PORT" ] && SOCKS_PORT=1082
+[ -z "$SOCKS_PORT" ] && SOCKS_PORT=1080
 
 if [ -f /etc/config/miwifi ]; then # Normal dnsmasq
 	_MODE=ROUTER
@@ -32,6 +32,7 @@ else
 		_OS=MACOS
 		_GFWLIST_CONF=/Library/WebServer/Documents/gfwlist.pac
 		_GFWLIST_URL=https://raw.githubusercontent.com/petronny/gfwlist2pac/master/gfwlist.pac
+		[ ! -f $_GFWLIST_CONF ] && sudo chmod 777 /Library/WebServer/Documents
 	else
 		_OS=OTHER
 	fi
@@ -59,8 +60,8 @@ usage()
 
 update()
 {
-	[ ! -z "$1" ] && _GFWLIST_CONF="$1"
-	curl -k -o $_GFWLIST_CONF $_GFWLIST_URL || exit 1
+	[ ! -z "$3" ] && _GFWLIST_CONF="$3"
+	curl --socks5-hostname $1:$2 -k -o $_GFWLIST_CONF $_GFWLIST_URL || exit 1
 
 	if [ $_OS = PADAVAN ]; then
 		cat << EOF >> $_GFWLIST_CONF
@@ -192,7 +193,8 @@ prepare()
 		if [ ! -z $_GFWLIST_CONF_RO ] && [ -f $_GFWLIST_CONF_RO ]; then
 			_GFWLIST_CONF=$_GFWLIST_CONF_RO
 		else
-			update
+			sleep 2
+			update $1 $2
 		fi
 		[ $_OS = MACOS ] && [ "$WING_PAC" = "1" ] && sudo apachectl restart
 	fi
@@ -243,7 +245,7 @@ inject()
 
 proxy()
 {
-	prepare
+	prepare $3 $4
 
 	if [ $_MODE = ROUTER ]; then
 		ulimit -n 65536
@@ -398,19 +400,23 @@ start()
 		;;
 	esac
 
+	if [ $1 -ge 2 ] && [ $1 -le 3 ]; then
+		nohup "$XCMD" &> /tmp/wing.log &
+	else
+		$XCMD &
+	fi
+
 	proxy $1 $_PROT 127.0.0.1 $SOCKS_PORT
 
-	if [ $1 -ge 4 ]; then
-		$XCMD &
-	elif [ $1 -ge 2 ]; then
-		nohup "$XCMD" &> /tmp/wing.log &
-	elif [ $_MODE = ROUTER ]; then
-		$XCMD &
-	else
+	if [ $1 -le 1 ] && [ $_MODE != ROUTER ]; then
+		echo
 		echo "export WING_URL=\"`make_url`\""
 		echo
-		$XCMD
+		echo "Press Enter to exit"
+		echo
+		read
 		stop
+		sleep 1
 	fi
 }
 
@@ -486,7 +492,7 @@ resume)
 	inject -C || inject -A
 	;;
 update)
-	update "$2"
+	update 127.0.0.1 $SOCKS_PORT "$2"
 	;;
 install)
 	install "$2"
