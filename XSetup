@@ -25,7 +25,8 @@ curl -o speedtest https://raw.githubusercontent.com/sivel/speedtest-cli/master/s
 chmod +x speedtest
 
 # Brew
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+#/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+/bin/zsh -c "$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)"
 brew update
 
 brew install scrcpy
