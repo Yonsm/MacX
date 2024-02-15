@@ -280,7 +280,7 @@ proxy() {
 }
 
 resolve() {
-	[ $_OS = MACOS ] && return
+	#[ $_OS = MACOS ] && return
 
 	CNT=0
 	while [ $CNT -le 20 ]; do
@@ -290,7 +290,7 @@ resolve() {
 		192.168.*|127.0.*|"")
 			;;
 		*)
-			#_HOST=$IP
+			_HOST=$IP
 			return
 			;;
 		esac
@@ -340,7 +340,7 @@ start() {
 			local RUN_TYPE=client
 			local LOCAL_PORT=1080
 		fi
-		#resolve $1
+		resolve $1
 		[ -z $_PORT ] && _PORT=443
 		echo "{\"run_type\":\"$RUN_TYPE\",\"local_addr\":\"0.0.0.0\",\"local_port\":$LOCAL_PORT,\"remote_addr\":\"$_HOST\",\"remote_port\":$_PORT,\"password\":[\"${_USER//%/\\x}\"],\"log_level\":$1,\"ssl\":{\"verify\":false}}" > /tmp/trojan.conf
 		XCMD="trojan -c /tmp/trojan.conf"
