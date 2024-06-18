@@ -1,9 +1,5 @@
 #!/bin/sh
 
-echo 1 > ~/Library/Application\ Support/Beyond\ Compare/IsPro
-:>~/Library/Application\ Support/Beyond\ Compare/registry.dat
-chmod 444 ~/Library/Application\ Support/Beyond\ Compare/registry.dat
-
 cat << EOF > ~/Library/Application\ Support/Beyond\ Compare/BCCommands.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Produced by Beyond Compare 4 from Scooter Software -->
@@ -41,7 +37,7 @@ cat << EOF > ~/Library/Application\ Support/Beyond\ Compare/BCPreferences.xml
 </BCPreferences>
 EOF
 
-cat << EOF > ~/Library/Application\ Support/Beyond\ Compare/BCPreferences.xml
+cat << EOF > ~/Library/Application\ Support/Beyond\ Compare/BCState.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Produced by Beyond Compare 4 from Scooter Software -->
 <BCState Version="1" MinVersion="1">
@@ -53,3 +49,7 @@ cat << EOF > ~/Library/Application\ Support/Beyond\ Compare/BCPreferences.xml
 	</TTipState>
 </BCState>
 EOF
+
+echo 1 > ~/Library/Application\ Support/Beyond\ Compare/IsPro
+:>~/Library/Application\ Support/Beyond\ Compare/registry.dat
+chmod 444 ~/Library/Application\ Support/Beyond\ Compare/registry.dat

@@ -8,9 +8,9 @@ case "$1" in
         GSIZE=4
         ;;
     *)
-        echo 'RAMDISK Utility for macOS 10.13-10.14\n'
-        echo 'Usage: $0 [GSIZE] [HDCMD]\n'
-        echo 'GSIZE - Size in GB, 1/2/3/4 Only, Default 4, RECOMMENDATION: based on physycle memory 4G=1, 8G=2, 16G=3, 32G=4'
+        echo 'RAMDISK Utility for macOS 10.13-10.14'
+        echo 'Usage: $0 [GSIZE] [HDCMD]'
+        echo 'GSIZE - Size in GB, 1-9 Only, Default 4, RECOMMENDATION: based on physycle memory 4G=1, 8G=2, 16G=3, 32G=4'
         echo 'HDCMD - hdid/hdik/hdiutil Only, Default hdid, NOTE: hdik=kernel but low speed, hdiutil=fast but shutdown slowly\n'
         echo
         exit
