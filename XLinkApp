@@ -65,6 +65,7 @@ order2=0
 pages=`sqlite3 db "SELECT item_id FROM groups ORDER BY item_id DESC LIMIT 2"`
 page1=`echo "$pages"|tail -1`
 page2=`echo "$pages"|head -1`
+export LC_ALL='C'
 for ITEM in `sqlite3 db "SELECT title,item_id FROM apps WHERE bundleid NOT LIKE 'com.apple.%'" | sort -f | tr ' ' .`; do
 	rowid=${ITEM##*|}
 	if [ ${ITEM%%.*} == 工具 ]; then
