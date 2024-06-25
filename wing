@@ -203,8 +203,8 @@ inject() {
 		fi
 
 		if [ $1 == -C ]; then
-			[ "$WING_PAC" = "1" ] && 
-				networksetup -setautoproxystate "$WING_NETWORK" on || 
+			[ "$WING_PAC" = "1" ] &&
+				networksetup -setautoproxystate "$WING_NETWORK" on ||
 				networksetup -setsocksfirewallproxystate "$WING_NETWORK" on
 			return 0
 		elif [ $1 == -D ]; then
@@ -213,7 +213,7 @@ inject() {
 		else
 			echo "Local Network: $WING_NETWORK"
 			echo "export ALL_PROXY=socks5://$2:$3"
-			[ "$WING_PAC" = "1" ] && 
+			[ "$WING_PAC" = "1" ] &&
 				networksetup setautoproxyurl "$WING_NETWORK" http://127.0.0.1/gfwlist.pac ||
 				networksetup setsocksfirewallproxy "$WING_NETWORK" $2 $3
 		fi
@@ -280,7 +280,7 @@ proxy() {
 }
 
 resolve() {
-	#[ $_OS = MACOS ] && return
+    grep '^[[:digit:].]*$' <<< "$_HOST" 1>/dev/null && return
 
 	CNT=0
 	while [ $CNT -le 20 ]; do
