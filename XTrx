@@ -1,0 +1,33 @@
+#!/bin/sh
+CDIR=$(cd "${0%/*}"; pwd)
+case "$1" in
+    'install'|'i')
+        cd "$CDIR"
+        brew install grep squashfs
+        curl -o padjffs2.c https://raw.githubusercontent.com/openwrt/openwrt/master/tools/padjffs2/src/padjffs2.c
+        curl -o Makefile https://raw.githubusercontent.com/openwrt/openwrt/master/tools/padjffs2/src/Makefile
+        make
+        rm Makefile padjffs2.c padjffs2.o
+        ;;
+    'extract'|'e')
+        offset1=`ggrep -o -b -a hsqs $2 | ggrep -o -P '[0-9]*(?=:hsqs)'`
+        offset2=`wc -c $2 | ggrep -o -P '[0-9]*(?= )'`
+        size2=`expr $offset2 - $offset1`
+        echo "Offset1=$offset1 Offset2=$offset2 size=$size2"
+        dd if=$2 of=kernel.bin bs=1 count=$offset1
+        dd if=$2 of=secondchunk.bin bs=1 count=$size2 skip=$offset1
+        sudo rm -rf squashfs-root 2>&1
+        sudo unsquashfs -d squashfs-root secondchunk.bin
+        rm secondchunk.bin
+        ;;
+    'create'|'c')
+        sudo mksquashfs squashfs-root newsecondchunk.bin
+        sudo chown $USER newsecondchunk.bin
+        cat kernel.bin newsecondchunk.bin > $2
+        $CDIR/padjffs2 $2
+        rm newsecondchunk.bin
+        ;;
+    *)
+        echo "$0 [extract|create|setup] [firmware.trx]"
+        ;;
+esac
