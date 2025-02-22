@@ -1,0 +1,4 @@
+#!/bin/sh
+
+~/Applications/Android\ Studio.app/Contents/jbr/Contents/Home/bin/java -jar ~/Library/Android/sdk/build-tools/33.0.0/lib/apksigner.jar sign --ks ~/Sites/Android.store --ks-key-alias key0 --ks-pass pass:$2 --ks-pass pass:$2 --out $1.out.apk $1
+

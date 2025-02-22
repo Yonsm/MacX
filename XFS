@@ -1,0 +1,15 @@
+#!/bin/sh
+if [ -z $1 ]; then
+	GSIZE=100g
+else
+	GSIZE=$1
+fi
+if [ -z $2 ]; then
+	XPATH=~/Sites/XFS.dmg.sparseimage
+else
+	XPATH=$2
+fi
+if [ ! -f ~/Sites/XFS.dmg.sparseimage ]; then
+	hdiutil create -type SPARSE -fs 'JHFS+X' -size $GSIZE -volname XFS "$XPATH"
+fi
+open "$XPATH"

@@ -1,0 +1,55 @@
+#!/bin/sh
+
+cat << EOF > ~/"Library/Application Support/Beyond Compare 5/BCCommands.xml"
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Produced by Beyond Compare 5 from Scooter Software -->
+<BCCommands Version="2" MinVersion="2">
+	<TDirCompareCommands>
+		<Items>
+			<DeleteAction Value=";;True"/>
+			<MovePromptAction Value=";;True"/>
+			<MirrorLeftAction Value=";;True"/>
+			<MirrorRightAction Value=";;True"/>
+			<NameFilterEditAction Value=";;False"/>
+		</Items>
+	</TDirCompareCommands>
+</BCCommands>
+EOF
+
+cat << EOF > ~/"Library/Application Support/Beyond Compare 5/BCPreferences.xml"
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Produced by Beyond Compare 5 from Scooter Software -->
+<BCPreferences Version="2" MinVersion="2">
+	<TBcPrefs>
+		<OpConfirmCompare Value="False"/>
+		<OpConfirmCopy Value="False"/>
+		<OpConfirmDelete Value="False"/>
+		<OpConfirmMerge Value="False"/>
+		<OpConfirmMove Value="False"/>
+		<OpConfirmMoveReplace Value="False"/>
+		<OpConfirmOverwriteNewer Value="False"/>
+		<OpConfirmOverwriteReadOnly Value="False"/>
+		<OpConfirmOverwriteSysFile Value="False"/>
+		<OpSyncConfirmMode Value="cmYesToAll"/>
+		<TabsConfirmClose Value="False"/>
+		<WindowsConfirmClose Value="False"/>
+	</TBcPrefs>
+</BCPreferences>
+EOF
+
+cat << EOF > ~/"Library/Application Support/Beyond Compare 5/BCState.xml"
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Produced by Beyond Compare 5 from Scooter Software -->
+<BCState Version="2" MinVersion="2">
+	<TBcState>
+		<FirstStartup Value="False"/>
+	</TBcState>
+	<TTipState>
+		<DontShowAgain Value="[tipEmptyDirs, tipFastRefresh]"/>
+	</TTipState>
+</BCState>
+EOF
+
+echo 1 > ~/"Library/Application Support/Beyond Compare 5/IsPro"
+:> ~/"Library/Application Support/Beyond Compare 5/registry.dat"
+chmod 444 ~/"Library/Application Support/Beyond Compare 5/registry.dat"

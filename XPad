@@ -1,0 +1,91 @@
+#!/bin/sh
+#SRC_DIR=`dirname $0`
+SRC_DIR=/Volumes/USR/Applications
+DST_DIR=$HOME/Applications
+
+# Check
+if [ -d "$SRC_DIR" ] && [[ "$1" =~ "link" ]]; then
+	# Prepare
+	if [ -d "$DST_DIR" ]; then
+		rm -rf $DST_DIR/*
+	else
+		mkdir $DST_DIR
+		touch $DST_DIR/.localized
+	fi
+
+	# Link
+	ITEMS=`ls "$SRC_DIR"|tr " " "?"`
+	for ITEM in $ITEMS
+	do
+		ITEM=`echo $ITEM|tr "?" " "`
+		if [ -d "$SRC_DIR/$ITEM" ]; then
+			if [[ "$ITEM" =~ ".app" ]]; then
+				if [ "$ITEM" == "网易有道翻译.app" ]; then NAME="Youdao Dict"
+				elif [ "$ITEM" == "aDrive.app" ]; then NAME="Aliyun Drive"
+				elif [ "$ITEM" == "BaiduNetdisk_mac.app" ]; then NAME="Baidu Cloud"
+				else NAME="${ITEM%*.app}"
+				fi
+				echo LINK\ "$DST_DIR/$NAME.app"
+				ln -s "$SRC_DIR/$ITEM" "$DST_DIR/$NAME.app"
+			else
+#				if [ "$ITEM" == "Utilities" ]; then
+#					mkdir "$DST_DIR/$ITEM"
+#					touch "$DST_DIR/$ITEM/.localized"
+#				fi
+				APPS=`ls "$SRC_DIR/$ITEM"|tr " " "?"`
+				for APP in $APPS
+				do
+					APP=`echo $APP|tr "?" " "`
+					if [[ "$APP" =~ ".app" ]]; then
+						if [[ "$APP" =~ "Photoshop" ]]; then
+							DST_APP="$DST_DIR/Adobe Photoshop.app"
+						else
+							if [[ "$ITEM" == "Utilities" ]]; then PRE="工具 "
+							elif [[ "$ITEM" =~ ^[a-zA-Z0-9] ]]; then PRE=""
+							else PRE="$ITEM "
+							fi
+							DST_APP="$DST_DIR/$PRE$APP"
+						fi
+						echo LINK\ "$DST_APP"
+						ln -s "$SRC_DIR/$ITEM/$APP" "$DST_APP"
+					fi
+				done
+			fi
+		fi
+	done
+
+	#defaults write com.apple.dock ResetLaunchPad -bool true
+	sudo find 2>/dev/null /private/var/folders/ -type d -name com.apple.dock.launchpad -exec rm -rf {} +;
+	killall Dock
+	sleep 2
+fi
+
+if [ "$1" != "linkonly" ]; then
+	cd $(getconf DARWIN_USER_DIR)com.apple.dock.launchpad/db
+	order1=0
+	order2=0
+	pages=`sqlite3 db "SELECT item_id FROM groups ORDER BY item_id DESC LIMIT 2"`
+	page1=`echo "$pages"|tail -1`
+	page2=`echo "$pages"|head -1`
+	export LC_ALL='C'
+	for ITEM in `sqlite3 db "SELECT title,item_id FROM apps WHERE bundleid NOT LIKE 'com.apple.%'" | sort -f | tr ' ' .`; do
+		rowid=${ITEM##*|}
+		if [ ${ITEM%%.*} == 工具 ]; then
+			parent_id=$page2
+			ordering=$order2
+			let order2=$order2+1
+			title=${ITEM%|*}
+			title=`echo ${title#*.}|tr . ' '`
+			sqlite3 db "UPDATE apps SET title='$title' WHERE rowid=$rowid"
+		else
+			parent_id=$page1
+			ordering=$order1
+			let order1=$order1+1
+		fi
+		echo $ITEM=$parent_id/$ordering
+		sqlite3 db "UPDATE items SET parent_id=$parent_id,ordering=$ordering WHERE rowid=$rowid"
+	done
+
+	sleep 1
+	killall Dock
+fi

@@ -1,0 +1,135 @@
+#!/bin/sh
+CDIR=$(cd "${0%/*}"; pwd)
+
+echo "$CDIR" | sudo tee /etc/paths.d/net.yonsm.macx
+
+sudo grep "admin ALL=(ALL) NOPASSWD: ALL" /etc/sudoers >/dev/null 2>&1
+if [ $? = 1 ]; then
+    echo "admin ALL=(ALL) NOPASSWD: ALL" | sudo tee -a /etc/sudoers
+fi
+
+sudo spctl --master-disable
+
+defaults write com.apple.iTunes DeviceBackupsDisabled -bool YES
+defaults write com.apple.desktopservices DSDontWriteNetworkStores true
+defaults write com.apple.iTunes AutomaticDeviceBackupsDisabled -bool true
+
+#$CDIR/XRamDisk
+
+exit
+
+
+# Speed Test
+cd $CDIR
+curl -o speedtest https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py
+chmod +x speedtest
+
+# Brew
+#/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+/bin/zsh -c "$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)"
+brew update
+
+brew install scrcpy
+
+# Python
+mkdir ~/.pip
+cat << \EOF > ~/.pip/pip.conf
+[global]
+index-url=http://mirrors.aliyun.com/pypi/simple/
+[install]
+trusted-host=mirrors.aliyun.com
+EOF
+
+pip3 install esptool miservice
+
+# Sublime
+# +Package Control: Command+Shift+P
+#   +ChineseLocalizations
+#   +ConvertToUTF8
+#   +Codec33
+#   +JsFormat
+#   +Pretty JSON
+#   +SFTP
+# Settings
+#   "rulers": [80,120,160,200],
+#   "word_wrap": "false",
+#   "update_check": false,
+#   "translate_tabs_to_spaces": true,
+#   "trim_trailing_white_space_on_save": true,
+# Host
+echo: https://github.com/QiuChenly/MyMacsAppCrack
+echo "0249FFC6 EBE15B41 5C415E41 5F5DC355 4889E5 => 0249FFC6 EBE15B41 5C415E41 5F5DC36A 0158C3"
+sudo codesign -f -s - --timestamp=none ~/Applications/Sublime.app
+
+# SN
+cat << EOF | sudo tee -a /etc/hosts
+127.0.0.1 www.sublimetext.com
+127.0.0.1 license.sublimehq.com
+EOF
+
+cat << \EOF
+#Sublime
+----- BEGIN LICENSE -----
+cracked@macked.app
+Unlimited User License
+EA7E-8888888
+A8A1B83C007267344BF4120B028FF6F2
+541171C4D11A3E5E1798C731AE4ECA65
+63420889FB6E42EED0FF79696984634E
+09914A52E8D88CA4A35B509671847691
+ADC45FD9AC519BBF2D05BECC6E7D5E0A
+A5CA13D19627AEFEC99C948ACC38683E
+233855E197C7BFA955C7063DD8446D41
+0521A4E6167F569E876851253EF13267
+------ END LICENSE ------
+
+#Axure
+zedex.cn
+xpU4wqREqR6MNDjj957APLHET1GwFV1d6bMjkconScgt01Z2nSwH1pz55FQs5MIh
+
+#AppDelete
+AD-V845-I172-R956-B601
+
+PlistEdit
+PLEDPRO095-42E7-REKA-M4H4-1309-1405
+
+#Pacifist
+MacXMacX
+4nbSTd3G6C-2bS2quo1of-AIC
+
+#VMWare
+4C21U-2KK9Q-M8130-4V2QH-CF810
+
+#Proxifier
+P427L-9Y552-5433E-8DSR3-58Z68
+
+# https://www.zzzmode.com/mytools/charles/
+Mac OS
+6BACE69077E6DA3993
+EOF
+
+# VS Code
+#   +PlatformIO
+cat << \EOF > ~/Library/Application\ Support/Code/User/settings.json
+{
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.detectIndentation": true,
+    "editor.insertSpaces": false,
+    "editor.minimap.enabled": false,
+    "editor.useTabStops": true,
+    "html.format.wrapLineLength": 160,
+    "prettier.endOfLine": "lf",
+    "prettier.htmlWhitespaceSensitivity": "strict",
+    "prettier.printWidth": 160,
+    "prettier.semi": false,
+    "prettier.singleQuote": true,
+    "prettier.tabWidth": 4,
+    "prettier.useTabs": true,
+    "python.autoComplete.addBrackets": true,
+    "python.pythonPath": "/usr/bin/python3",
+    "workbench.startupEditor": "newUntitledFile",
+    "python.formatting.provider": "autopep8",
+    "python.formatting.autopep8Args": ["--max-line-length=200"],
+    "autopep8.args": ["--max-line-length=200", "--ignore=W191"]
+}
+EOF

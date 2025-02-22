@@ -1,0 +1,18 @@
+#!/bin/sh
+case "$1" in
+	list)
+		~/Library/Android/sdk/emulator/emulator -list-avds
+		exit
+		;;
+	[1-9])
+		AVD=`~/Library/Android/sdk/emulator/emulator -list-avds | head -$1 | tail -1`
+		;;
+	"")
+		AVD=`~/Library/Android/sdk/emulator/emulator -list-avds | head -1`
+		;;
+	*)
+		AVD="$1"
+		;;
+esac
+echo ~/Library/Android/sdk/emulator/emulator -avd $AVD
+~/Library/Android/sdk/emulator/emulator -avd $AVD

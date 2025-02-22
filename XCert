@@ -1,0 +1,21 @@
+#!/bin/sh
+if [ -z  $1 ]; then
+	echo "$0 <domain> <dnspod_id|certbot> [dnspod_token]"
+	exit
+fi
+
+if [ "$2" == "certbot" ]; then
+	type certbot || brew install certbot
+	certbot certonly -d "$1" -d "*.$1" --manual --preferred-challenges dns --server https://acme-v02.api.letsencrypt.org/directory --config-dir ~/.ssl --work-dir /tmp --logs-dir /tmp
+else
+	type ~/.acme.sh/acme.sh || curl  https://get.acme.sh | sh
+	if [ -n "$2" ]; then
+		export DP_Id="$2"
+		export DP_Key="$3"
+		DNS_DP=dns_dp
+	else
+		DNS_DP=
+	fi
+	~/.acme.sh/acme.sh --issue --dns $DNS_DP -d "$1" -d "*.$1" --debug
+	#~/.acme.sh/acme.sh --renew -d -d "*.$1" --ecc --force
+fi
