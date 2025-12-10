@@ -6,7 +6,7 @@ DST_DIR=$HOME/Applications
 # Check
 if [ -d "$SRC_DIR" ] && [[ "$1" =~ "link" ]]; then
 	# Prepare
-	if [ -d "$DST_DIR" ]; then
+	if [ -d $DST_DIR ]; then
 		rm -rf $DST_DIR/*
 	else
 		mkdir $DST_DIR
@@ -25,7 +25,7 @@ if [ -d "$SRC_DIR" ] && [[ "$1" =~ "link" ]]; then
 				elif [ "$ITEM" == "BaiduNetdisk_mac.app" ]; then NAME="Baidu Cloud"
 				else NAME="${ITEM%*.app}"
 				fi
-				echo LINK\ "$DST_DIR/$NAME.app"
+				echo "LINK $DST_DIR/$NAME.app"
 				ln -s "$SRC_DIR/$ITEM" "$DST_DIR/$NAME.app"
 			else
 #				if [ "$ITEM" == "Utilities" ]; then
@@ -46,7 +46,7 @@ if [ -d "$SRC_DIR" ] && [[ "$1" =~ "link" ]]; then
 							fi
 							DST_APP="$DST_DIR/$PRE$APP"
 						fi
-						echo LINK\ "$DST_APP"
+						echo "LINK $DST_APP"
 						ln -s "$SRC_DIR/$ITEM/$APP" "$DST_APP"
 					fi
 				done
@@ -54,10 +54,10 @@ if [ -d "$SRC_DIR" ] && [[ "$1" =~ "link" ]]; then
 		fi
 	done
 
-	#defaults write com.apple.dock ResetLaunchPad -bool true
-	sudo find 2>/dev/null /private/var/folders/ -type d -name com.apple.dock.launchpad -exec rm -rf {} +;
+	defaults write com.apple.dock ResetLaunchPad -bool true
+	#sudo find 2>/dev/null /private/var/folders/ -type d -name com.apple.dock.launchpad -exec rm -rf {} +;
 	killall Dock
-	sleep 2
+	sleep 5
 fi
 
 if [ "$1" != "linkonly" ]; then
@@ -67,7 +67,8 @@ if [ "$1" != "linkonly" ]; then
 	pages=`sqlite3 db "SELECT item_id FROM groups ORDER BY item_id DESC LIMIT 2"`
 	page1=`echo "$pages"|tail -1`
 	page2=`echo "$pages"|head -1`
-	export LC_ALL='C'
+	#export LC_ALL='C'
+	export LC_ALL='zh_CN.UTF-8'
 	for ITEM in `sqlite3 db "SELECT title,item_id FROM apps WHERE bundleid NOT LIKE 'com.apple.%'" | sort -f | tr ' ' .`; do
 		rowid=${ITEM##*|}
 		if [ ${ITEM%%.*} == 工具 ]; then
@@ -86,6 +87,7 @@ if [ "$1" != "linkonly" ]; then
 		sqlite3 db "UPDATE items SET parent_id=$parent_id,ordering=$ordering WHERE rowid=$rowid"
 	done
 
+	sqlite3 db "VACUUM"
 	sleep 1
 	killall Dock
 fi
