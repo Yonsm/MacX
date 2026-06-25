@@ -28,10 +28,11 @@ if [ -d "$SRC_DIR" ] && [[ "$1" =~ "link" ]]; then
 				echo "LINK $DST_DIR/$NAME.app"
 				ln -s "$SRC_DIR/$ITEM" "$DST_DIR/$NAME.app"
 			else
-#				if [ "$ITEM" == "Utilities" ]; then
-#					mkdir "$DST_DIR/$ITEM"
-#					touch "$DST_DIR/$ITEM/.localized"
-#				fi
+				if [ "$ITEM" == "Utilities" ]; then
+					break
+					# mkdir "$DST_DIR/$ITEM"
+					# touch "$DST_DIR/$ITEM/.localized"
+				fi
 				APPS=`ls "$SRC_DIR/$ITEM"|tr " " "?"`
 				for APP in $APPS
 				do
