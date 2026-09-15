@@ -16,6 +16,6 @@ else
 	else
 		DNS_DP=
 	fi
-	~/.acme.sh/acme.sh --issue --dns $DNS_DP -d "$1" -d "*.$1" --debug
+	~/.acme.sh/acme.sh --issue --dns $DNS_DP -d "$1" -d "*.$1" --keylength 2048 --debug
 	#~/.acme.sh/acme.sh --renew -d -d "*.$1" --ecc --force
 fi
